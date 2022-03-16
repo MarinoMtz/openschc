@@ -221,7 +221,11 @@ class Unparser:
         pass
 
     def unparse (self, header_d, data, direction, d_rule, iface=None):
+<<<<<<< HEAD
         #dprint ("unparse: ", header_d, data, direction)
+=======
+        dprint ("unparse: ", header_d, data, direction)
+>>>>>>> 1cfb60e... deleting comments
 
         L2header = None
         L3header = None

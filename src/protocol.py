@@ -35,7 +35,7 @@ class ConnectivityManager:
         """
         Return the MTU is bits for a specific device, currently returns always 500
         """
-        return 200
+        return 600
 
 
 # ---------------------------------------------------------------------------
@@ -203,6 +203,8 @@ class SCHCProtocol:
         In any case return a SCHC packet (compressed or not) as a BitBuffer
         """
         #context = self.rule_manager.find_context_bydstiid(dst_l3_address)
+ 
+
         # Parse packet as IP packet and apply compression rule
         P = Parser(self)
         if self.position == T_POSITION_CORE:
@@ -268,6 +270,7 @@ class SCHCProtocol:
         If self.position is T_POSITION_DEVICE and device_id = None, 
         this function is for sending from device to core.
         """
+<<<<<<< HEAD
 
         self._log("schc_send {} {}".format(core_id, device_id))
 	#, raw_packet))
@@ -278,18 +281,40 @@ class SCHCProtocol:
         packet_bbuf, device_id = self._apply_compression(device_id, raw_packet)
 
         print("protocol.py, schc_send, core_id: ", core_id, "device_id: ", device_id)
+=======
+        self._log("recv-from-l3 {} {} {}".format(dst_l2_address, dst_l3_address, raw_packet))
+
+        # Perform compression
+        packet_bbuf, device_id = self._apply_compression(dst_l3_address, raw_packet)
+>>>>>>> 1cfb60e... deleting comments
 
         if packet_bbuf == None: # No compression rule found
             return 
 
+<<<<<<< HEAD
         # Start a fragmentation session from rule database
         if self.position == T_POSITION_DEVICE:
             direction = T_DIR_UP
             destination = core_id
+=======
+        # Check if fragmentation is needed.
+        if packet_bbuf.count_added_bits() < self.connectivity_manager.get_mtu(device_id):
+            self._log("fragmentation not needed size={}".format(
+                packet_bbuf.count_added_bits()))
+            args = (packet_bbuf.get_content(), device_id)
+            self.scheduler.add_event(0, self.layer2.send_packet, args) # XXX: what about directly send?
+            return
+
+        return 
+        # Start a fragmentation session from rule database
+        if self.position == T_POSITION_DEVICE:
+            direction = T_DIR_UP
+>>>>>>> 1cfb60e... deleting comments
         else:
             direction = T_DIR_DW
             destination = device_id
 
+<<<<<<< HEAD
         # Check if fragmentation is needed.
         if packet_bbuf.count_added_bits() < self.connectivity_manager.get_mtu(device_id):
             self._log("fragmentation not needed size={}".format(
@@ -299,6 +324,9 @@ class SCHCProtocol:
             return
 
         frag_session = self._make_frag_session(core_id=core_id, device_id=device_id, direction=direction)
+=======
+        frag_session = self._make_frag_session(device_id, direction)
+>>>>>>> 1cfb60e... deleting comments
         if frag_session is not None:
             frag_session.set_packet(packet_bbuf)
             frag_session.start_sending()
@@ -316,13 +344,12 @@ class SCHCProtocol:
             print ("No rule found")
             return None
 
-        # If only compressed but not fragmented
         if T_COMP in rule:
-            dprint ("protocol.py : T_COMP found" )
             if self.position == T_POSITION_DEVICE:
                 direction = T_DIR_DW
             else:
                 direction = T_DIR_UP
+
             decomp = Decompressor()
             unparser = Unparser()
             header_d = decomp.decompress(schc=packet_bbuf, rule=rule, direction=direction)
@@ -332,7 +359,7 @@ class SCHCProtocol:
                 pkt_data.append(octet)
 
             pkt = unparser.unparse(header_d, pkt_data,  direction, rule,)
-            return device_id, pkt
+            return pkt
     
         # fragmentation rule
 
@@ -362,6 +389,7 @@ class SCHCProtocol:
                 context, frag_rule, session_id)
             print("New reassembly session created", session.__class__.__name__)
 
+<<<<<<< HEAD
         dprint("core_id, device_id:", core_id , device_id)
         dprint("device or core?", self.role) 
 
@@ -373,8 +401,15 @@ class SCHCProtocol:
         if rule == None:
             print ("No rule found")
             return None
+=======
+        return session.receive_frag(packet_bbuf, dtag, position=self.position, protocol=self, devid=dst_l2_addr)
+>>>>>>> 1cfb60e... deleting comments
 
+    def decompress_only (self, packet_bbuf, device_id=None, direction=None): # called after reassembly      
+        rule = self.rule_manager.FindRuleFromSCHCpacket(packet_bbuf, device=device_id)
+        
         if T_COMP in rule:
+<<<<<<< HEAD
             if self.position == T_POSITION_DEVICE:
                 direction = T_DIR_DW
                 dprint("direction: ", direction)
@@ -386,13 +421,18 @@ class SCHCProtocol:
             unparser = Unparser()
             header_d = decomp.decompress(schc=packet_bbuf, rule=rule, direction=direction)
             dprint("header_d:", header_d)
+=======
+            decomp = Decompressor()
+            unparser = Unparser()
+            header_d = decomp.decompress(schc=packet_bbuf, rule=rule, direction=direction)
+>>>>>>> 1cfb60e... deleting comments
             pkt_data = bytearray()
             while (packet_bbuf._wpos - packet_bbuf._rpos) >= 8:
                 octet = packet_bbuf.get_bits(nb_bits=8)
                 pkt_data.append(octet)
-            pkt = unparser.unparse(header_d, pkt_data, direction, rule)
-            #print ("protocol.py: pkt after unparse : \n", IPv6(bytes(pkt)[0:]).show2())
+            pkt = unparser.unparse(header_d, pkt_data,  direction, rule,)
             return device_id, pkt
+
 
     def process_decompress(self, packet_bbuf, dev_l2_addr, direction):
         rule = self.rule_manager.FindRuleFromSCHCpacket(packet_bbuf, dev_l2_addr)
