@@ -144,7 +144,7 @@ class FragmentNoAck(FragmentBase):
         print(self.rule)
         min_size = (frag_msg.get_sender_header_size(self.rule) +
                         frag_msg.get_mic_size(self.rule) + self.l2word)   
-        print (self.protocol.connectivity_manager.get_mtu("toto"), min_size)
+        print ('MTU = ', self.protocol.connectivity_manager.get_mtu("toto"), min_size)
         if self.protocol.connectivity_manager.get_mtu("toto") < min_size:
             raise ValueError("the MTU={} is not enough to carry the SCHC fragment of No-ACK mode={}".format(self.mtu, min_size))
 
@@ -201,7 +201,7 @@ class FragmentNoAck(FragmentBase):
                 self.mic_sent = self.get_mic(self.mic_base, last_frag_base_size)
 
                 self.protocol.session_manager.delete_session(self._session_id)
-
+                print('MIC Size = ', frag_msg.get_mic_size(self.rule))
                 fcn = frag_msg.get_fcn_all_1(self.rule)
                 if enable_statsct:
                     Statsct.set_msg_type("SCHC_ALL_1 ")
@@ -214,7 +214,6 @@ class FragmentNoAck(FragmentBase):
                               remaining_data_size) % self.l2word)
                 tile = self.packet_bbuf.get_bits_as_buffer(tile_size)
                 self.protocol.scheduler.add_event(0, self.event_sent_frag, ())
-
                 fcn = 0
                 self.mic_sent = None
                 if enable_statsct:
@@ -261,6 +260,9 @@ class FragmentNoAck(FragmentBase):
         dtrace ("|----{:3}------------->".format(len(schc_frag.packet._content)))
         print("frag_send.py, args: ", args)
         print("frag_send.py, _session_id: ", self._session_id[0])
+        print("FCN size=", fcn)
+        print ('dtag', frag_msg.get_max_dtag(self.rule))
+        print ('dtag', frag_msg.get_max_fcn(self.rule))
         self.protocol.scheduler.add_event(0, self.protocol.layer2.send_packet,
                                           args)
 
@@ -297,11 +299,6 @@ class FragmentAckOnError(FragmentBase):
 
     def set_packet(self, packet_bbuf):
         super().set_packet(packet_bbuf)
-        print('frag-send.py, rule = ', self.rule)
-        print('packet_bbuf = ', packet_bbuf)
-        print('self.l2word = ', self.l2word)
-        print('frag-send.py, rule frag ?= ', self.rule[T_FRAG])
-        
         self.all_tiles = TileList(self.rule, packet_bbuf, self.l2word)
         # XXX
         # check whether the size of the last tile is less than L2 word
@@ -352,8 +349,9 @@ class FragmentAckOnError(FragmentBase):
         #     return
 
         # get contiguous tiles as many as possible fit in MTU.
-        mtu_size = self.protocol.layer2.get_mtu_size()
-        print ("MTU"*5, mtu_size) 
+        # mtu_size = self.protocol.layer2.get_mtu_size()
+        mtu_size = self.protocol.connectivity_manager.get_mtu("toto")
+        print ("MTU = ", mtu_size) 
         window_tiles, nb_remaining_tiles, remaining_size = self.all_tiles.get_tiles(mtu_size)
         dprint("----window tiles to send: {}, nb_remaining_tiles: {}, remaining_size: {}".format(window_tiles,
                                                                                                 nb_remaining_tiles,
