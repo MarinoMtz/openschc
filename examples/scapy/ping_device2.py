@@ -18,13 +18,16 @@ import ipaddress
 
 # Create a Rule Manager and upload the rules.
 rm = RM.RuleManager()
-rm.Add(file="icmp1.json")
+rm.Add(file="icmp2.json")
 rm.Print()
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 #Unparser
 unparser = Unparser()
 
+=======
+>>>>>>> 5bdfb0b... managing (core_id, dev_id) with NoAck
 # Create a ICMPv6 Echo Reply from Echo Request
 def create_echoreply(pkt, addr):
     dprint("packet decompresed: ", pkt)
@@ -86,7 +89,7 @@ def processPkt(pkt):
                            dprint ("ping_device.py, r =", r)
                            schc_pkt_decompressed = r[1]
                            pkt_reply, core_id = create_echoreply(schc_pkt_decompressed, addr)                     
-                           uncomp_pkt = schc_machine.schc_send(bytes(pkt_reply), core_id=core_id,)
+                           uncomp_pkt = schc_machine.schc_send(bytes(pkt_reply), core_id=core_id)
                            dprint(uncomp_pkt)
             elif ip_proto==41:
                 schc_machine.schc_send(bytes(pkt)[34:], device_id=device_id)
@@ -124,9 +127,4 @@ schc_machine = SCHCProtocol(
     verbose = True)         
 schc_machine.set_rulemanager(rm)
 
-sniff(prn=processPkt, iface="en0") # scappy cannot read multiple interfaces
-
-
-
-
- 
+sniff(prn=processPkt, iface="ens3") # scappy cannot read multiple interfaces

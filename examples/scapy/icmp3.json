@@ -29,10 +29,14 @@
 		"RuleIDLength" : 11,
 		"Fragmentation" : {
 <<<<<<< HEAD
+<<<<<<< HEAD
 			"FRMode": "AckOnError",
 =======
 			"FRMode": "ackOnError",
 >>>>>>> c04c04a... adding noack rule.json
+=======
+			"FRMode": "AckOnError",
+>>>>>>> 8aa7a5b... Update icmp3.json
 			"FRDirection": "DW",
             "FRModeProfile": {
                 "dtagSize": 2,
@@ -51,10 +55,14 @@
 		"RuleIDLength" : 11,
 		"Fragmentation" : {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		"FRMode": "AckOnError",
 =======
 		"FRMode": "NoAck",
 >>>>>>> c04c04a... adding noack rule.json
+=======
+		"FRMode": "AckOnError",
+>>>>>>> 8aa7a5b... Update icmp3.json
 		"FRDirection": "UP",
         "FRModeProfile": {
             "dtagSize": 2,
