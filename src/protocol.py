@@ -91,6 +91,8 @@ class SessionManager:
             raise ValueError("FRMode:", mode)
         self._add_session(session_id, session)
         setattr(session, "_session_id", session_id)
+        print("protocol.py, create_reassembly_session, session :", session_id)
+        print("l2_address : create_reassembly_session, l2addr", l2_address)
         return session
 
     def create_fragmentation_session(self, l2_address, context, rule):
@@ -359,6 +361,8 @@ class SCHCProtocol:
         return session.receive_frag(packet_bbuf, dtag, position=self.position, protocol=self, devid=device_id)
 
     def decompress_only (self, packet_bbuf, rule, device_id=None): # called after reassembly      
+
+        dprint ("debug: protocol.py, decompress_only : ", packet_bbuf, rule, device_id)
         if rule == None:
             print ("No rule found")
             return None

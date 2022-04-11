@@ -234,7 +234,7 @@ class ReassemblerNoAck(ReassembleBase):
                     rule = self.protocol.rule_manager.FindRuleFromSCHCpacket(schc=schc_packet, device=devid)
                     dprint("debug: no-ack FindRuleFromSCHCpacket", rule)
                     args = self.protocol.decompress_only(schc_packet, rule, devid)
-                dprint("Packet decompressed at receive_frag: ", args)
+                print("Packet decompressed at receive_frag: ", args)
                 self.state = 'DONE_NO_ACK'
                 self.protocol.session_manager.delete_session(self._session_id)
                 dprint(self.state)
@@ -258,15 +258,20 @@ class ReassemblerNoAck(ReassembleBase):
 
 class ReassemblerAckOnError(ReassembleBase):
     """ ReassemblerAckOnError class
-
-    Todo : Redaction
-
-    """
     # In ACK-on-Error, a fragment contains tiles belonging to different window.
     # A type of data structure holding tiles in each window is not suitable.
     # So, here just appends a fragment into the tile_list like No-ACK.
+    """
 
     def receive_frag(self, bbuf, dtag, position, protocol, devid=None):
+        """
+        return 
+        - None if fragmentation is not finished
+        - False if the MIC is wrong
+        - bytearray if fragmentation succeed 
+        
+        """
+
         self._last_receive_info = []
         print('state: {}, received fragment -> {}, rule-> {}'.format(self.state,
                                                                      bbuf, self.rule))
@@ -275,7 +280,7 @@ class ReassemblerAckOnError(ReassembleBase):
         schc_frag = frag_msg.frag_receiver_rx(self.rule, bbuf)
         print("receiver frag received:", schc_frag.__dict__)
         # XXX how to authenticate the message from the peer. without
-        # authentication, any nodes can cancel the invactive timer.
+        # authentication, any node can cancel the invactive timer.
         self.cancel_inactive_timer()
         if self.state == "ABORT":
             self._last_receive_info = [("state-abort",)]
@@ -426,9 +431,9 @@ class ReassemblerAckOnError(ReassembleBase):
             schc_packet, mic_calced = self.get_mic_from_tiles_received()
             print('MIC calced?')
             if self.mic_received == mic_calced:
-                print('MIC OK')
                 info.append("mic-ok")
                 args = self.finish(schc_packet, schc_frag, rule, devid)
+                print('MIC OK', args)
                 return args
             else:
                 # XXX waiting for the fragments requested by ACK.
@@ -452,6 +457,7 @@ class ReassemblerAckOnError(ReassembleBase):
                 info.append("mic-ok")
                 self.mic_missmatched = False
                 args = self.finish(schc_packet, schc_frag, rule, devid)
+                print("frag_recv.py: AckOnError args: ", args)
                 return args
             else:
                 self.mic_missmatched = True
@@ -558,7 +564,13 @@ class ReassemblerAckOnError(ReassembleBase):
         #input('DONE')
         # decompression
         #self.protocol.process_decompress(schc_packet, self.sender_L2addr, direction="UP")
-        argsfn = self.protocol.decompress_only(schc_packet, rule, devid)
+
+        comp_rule = self.protocol.rule_manager.FindRuleFromSCHCpacket(schc=schc_packet, device=devid)
+        dprint("debug, frag_recv.py: AckOnError - finc comp_rule: ", comp_rule)
+        dprint("debug, frag_recv.py: AckOnError devid", devid)
+        dprint("debug, frag_recv.py: AckOnError schc_packet", schc_packet)
+        argsfn = self.protocol.decompress_only(schc_packet, comp_rule, devid)
+        print ("frag_recv.py, devid and decompressed packet: ", argsfn)
 
         # ACK message
         schc_ack = frag_msg.frag_receiver_tx_all1_ack(
@@ -566,11 +578,15 @@ class ReassemblerAckOnError(ReassembleBase):
                 schc_frag.dtag,
                 schc_frag.win,
                 cbit=1)
+
         dprint("ACK success sent:", schc_ack.__dict__)
         if enable_statsct:
             Statsct.set_msg_type("SCHC_ACK_OK")
+
         dprint("----------------------- SCHC ACK OK SEND  -----------------------")
-        args = (schc_ack.packet.get_content(), self._session_id[0])
+        args = (schc_ack.packet.get_content(), devid)
+        dprint ("++ dbug: frag_recv.py: ACK args", args)
+        #time.sleep(1)
         self.protocol.scheduler.add_event(0, self.protocol.layer2.send_packet, args)
         # XXX need to keep the ack message for the ack request.
         #the ack is build everytime
@@ -579,6 +595,9 @@ class ReassemblerAckOnError(ReassembleBase):
         #self.event_id_inactive_timer = self.protocol.scheduler.add_event(
         #        self.inactive_timer, self.event_inactive, tuple())
         #dprint("DONE, but in case of ACK REQ MUST WAIT ", schc_frag.fcn)
+
+        print ("frag_recv.py, finish (MIC OK), devid: ", devid)
+        print ("frag_recv.py, finish (MIC OK), args: ", argsfn)
         return argsfn
 
     def get_mic_from_tiles_received(self):

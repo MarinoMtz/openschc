@@ -230,7 +230,7 @@ class FragmentNoAck(FragmentBase):
 
         # send a SCHC fragment
         args = (schc_frag.packet.get_content(), self._session_id[0], None)
-        
+        dprint ("dbug: frag_send.py: Fragment args", args)
         dprint("frag sent:", schc_frag.__dict__)
         if self.rule[T_FRAG][T_FRAG_PROF][T_FRAG_DTAG] == 0:
             w_dtag = '-'
@@ -313,7 +313,7 @@ class FragmentAckOnError(FragmentBase):
         #self.bit_list = make_bit_list(self.all_tiles.get_all_tiles(),
         #                              self.rule["FCNSize"],
         #                              frag_msg.get_fcn_all_1(self.rule))
-        dprint("----------------------- Fragmentation process -----------------------")
+        print("----------------------- Fragmentation process -----------------------")
         self.bit_list = make_bit_list(self.all_tiles.get_all_tiles(),
                                       self.rule[T_FRAG][T_FRAG_PROF][T_FRAG_FCN],
                                       self.rule[T_FRAG][T_FRAG_PROF][T_FRAG_W])
@@ -537,6 +537,7 @@ class FragmentAckOnError(FragmentBase):
 
         # send a SCHC fragment
         args = (schc_frag.packet.get_content(), self._session_id[0], self.event_sent_frag)
+        dprint ("dbug: frag_send.py: Sending Fragment, args: ", args)
         dprint("frag sent:", schc_frag.__dict__)
         self.protocol.scheduler.add_event(0, self.protocol.layer2.send_packet, args)
 
