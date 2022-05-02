@@ -30,9 +30,8 @@ class ReassembleBase:
 
     """
 
-    def __init__(self, protocol=None, context=None, rule=None, dtag=None, sender_L2addr=None):
+    def __init__(self, protocol=None, context=None, rule=None, dtag=None, core_id=None, device_id=None):
         """
-
         Args :
             protocol : protocol
             context : context
@@ -40,9 +39,14 @@ class ReassembleBase:
             dtag : ?
             sender_L2addr : None or 'int' containing the sender's address
 
-
         """
         self.protocol = protocol
+
+        if protocol.role == T_POSITION_CORE:
+            sender_L2addr = device_id
+        else: 
+            sender_L2addr = core_id
+
         self.context = context
         self.rule = rule
         self.dtag = dtag
@@ -60,9 +64,7 @@ class ReassembleBase:
         self.schc_ack = None
         self.all1_received = False
         self.mic_missmatched = False
-
         self.fragment_received = False
-
         self._last_receive_info = None # for logs
 
     def get_mic(self, mic_target, extra_bits=0):
@@ -133,7 +135,7 @@ class ReassemblerNoAck(ReassembleBase):
     // Todo : Redaction
 
     """
-    def receive_frag(self, bbuf, dtag, position, protocol, devid=None):
+    def receive_frag(self, bbuf, dtag, position, protocol, core_id=None, device_id=None):
         """
         return 
         - None if fragmentation is not finished
@@ -231,9 +233,9 @@ class ReassemblerNoAck(ReassembleBase):
                     # XXX need to merge them into one.  Then, here searching database will
                     # XXX be moved into somewhere.
                     # XXX
-                    rule = self.protocol.rule_manager.FindRuleFromSCHCpacket(schc=schc_packet, device=devid)
+                    rule = self.protocol.rule_manager.FindRuleFromSCHCpacket(schc=schc_packet, device=device_id)
                     dprint("debug: no-ack FindRuleFromSCHCpacket", rule)
-                    args = self.protocol.decompress_only(schc_packet, rule, devid)
+                    args = self.protocol.decompress_only(schc_packet, rule, device_id)
                 print("Packet decompressed at receive_frag: ", args)
                 self.state = 'DONE_NO_ACK'
                 self.protocol.session_manager.delete_session(self._session_id)
@@ -263,7 +265,7 @@ class ReassemblerAckOnError(ReassembleBase):
     # So, here just appends a fragment into the tile_list like No-ACK.
     """
 
-    def receive_frag(self, bbuf, dtag, position, protocol, devid=None):
+    def receive_frag(self, bbuf, dtag, position, protocol, core_id=None, device_id=None):
         """
         return 
         - None if fragmentation is not finished
@@ -272,12 +274,31 @@ class ReassemblerAckOnError(ReassembleBase):
         
         """
 
+        # Define the other end for ACK send:
+
+        if self.protocol.position == T_POSITION_CORE:
+            receiver_id = device_id
+        else :
+            receiver_id = core_id
+       
         self._last_receive_info = []
         print('state: {}, received fragment -> {}, rule-> {}'.format(self.state,
                                                                      bbuf, self.rule))
+                                                                     
         assert (T_FRAG in self.rule)
         rule = self.rule
+
+        if self.position == T_POSITION_CORE: 
+            if rule[T_FRAG][T_FRAG_DIRECTION] == 'DW' : # ACK or Abort
+                schc_frag = frag_msg.frag_sender_rx(bbuf) 
+        
+        if self.position == T_POSITION_DEVICE:
+            if rule[T_FRAG][T_FRAG_DIRECTION] == 'UP' : # ACK or Abort
+                schc_frag = frag_msg.frag_sender_rx(bbuf) 
+
+        # Regular Fragment        
         schc_frag = frag_msg.frag_receiver_rx(self.rule, bbuf)
+        
         print("receiver frag received:", schc_frag.__dict__)
         # XXX how to authenticate the message from the peer. without
         # authentication, any node can cancel the invactive timer.
@@ -293,6 +314,16 @@ class ReassemblerAckOnError(ReassembleBase):
             # Statsct.set_msg_type("SCHC_SENDER_ABORT")
             # XXX needs to release all resources.
             self._last_receive_info = [("abort",)]
+            return None  # TODO
+        
+        if schc_frag.ack == True:
+            if schc_frag.cbit == True:
+                dprint("------------------- ACK-Success Received -----------------------")
+                self._last_receive_info = [("ack success received",)]
+                protocol.session_manager.delete_session(self._session_id)
+            else:
+                dprint("------------------- ACK-Failure Received -----------------------")
+                self._last_receive_info = [("ack failure received",)]
             return None  # TODO
 
         if schc_frag.ack_request == True:
@@ -432,7 +463,7 @@ class ReassemblerAckOnError(ReassembleBase):
             print('MIC calced?')
             if self.mic_received == mic_calced:
                 info.append("mic-ok")
-                args = self.finish(schc_packet, schc_frag, rule, devid)
+                args = self.finish(schc_packet, schc_frag, rule, receiver_id)
                 print('MIC OK', args)
                 return args
             else:
@@ -456,7 +487,7 @@ class ReassemblerAckOnError(ReassembleBase):
                     schc_frag.mic, mic_calced))
                 info.append("mic-ok")
                 self.mic_missmatched = False
-                args = self.finish(schc_packet, schc_frag, rule, devid)
+                args = self.finish(schc_packet, schc_frag, rule, receiver_id)
                 print("frag_recv.py: AckOnError args: ", args)
                 return args
             else:

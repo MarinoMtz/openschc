@@ -73,26 +73,27 @@ class SessionManager:
         self.session_table.pop(session_id)
         print("SessionManager: deleted", session_id)
 
-    def create_reassembly_session(self, context, rule, session_id):
-        session_id = self._filter_session_id(session_id)        
-        l2_address, rule_id, unused, dtag = session_id
+    def create_reassembly_session(self, context, rule, session_id): #TODO
+        session_id = self._filter_session_id(session_id)  
+
+        core_id, device_id, rule_id, unused, dtag = session_id
         if self.unique_peer:
-            l2_address = None
+            l2_address = None #TODO
         mode = rule[T_FRAG][T_FRAG_MODE]
         if mode == T_FRAG_NO_ACK:
             session = ReassemblerNoAck(
-                self.protocol, context, rule, dtag, l2_address)
+                self.protocol, context, rule, dtag, core_id, device_id)
         elif mode == T_FRAG_ACK_ALWAYS:
             raise NotImplementedError("FRMode:", mode)
         elif mode == T_FRAG_ACK_ON_ERROR:
             session = ReassemblerAckOnError(
-                self.protocol, context, rule, dtag, l2_address)
+                self.protocol, context, rule, dtag, core_id, device_id)
         else:
             raise ValueError("FRMode:", mode)
         self._add_session(session_id, session)
         setattr(session, "_session_id", session_id)
         print("protocol.py, create_reassembly_session, session :", session_id)
-        print("l2_address : create_reassembly_session, l2addr", l2_address)
+        print("protocol.py : create_reassembly_session, core_id, device_id", core_id, device_id)
         return session
 
     def create_fragmentation_session(self, l2_address, context, rule):
@@ -299,10 +300,9 @@ class SCHCProtocol:
             frag_session.set_packet(packet_bbuf)
             frag_session.start_sending()
 
-    def schc_recv(self, schc_packet, dst_l2_addr=None,  device_id=None):
-        if device_id == None:
-            device_id = dst_l2_addr # for compatibility with old code : remove when cleaned
-        
+    def schc_recv(self, schc_packet, core_id=None,  device_id=None):
+        # if device_id == None:
+        print ("core_id : ", core_id)
         """Receiving a SCHC packet from a lower layer."""
         packet_bbuf = BitBuffer(schc_packet)
         dprint('SCHC: recv from L2:', b2hex(packet_bbuf.get_content()))
@@ -332,6 +332,7 @@ class SCHCProtocol:
             return device_id, pkt
     
         # fragmentation rule
+
         frag_rule = rule
 
         dtrace ('\t\t\t-----------{:3}--------->|'.format(len(packet_bbuf._content)))
@@ -344,7 +345,8 @@ class SCHCProtocol:
 
         rule_id = frag_rule[T_RULEID]
         rule_id_length = frag_rule[T_RULEIDLENGTH]
-        session_id = (dst_l2_addr, rule_id, rule_id_length, dtag)
+        session_id = (core_id, device_id, rule_id, rule_id_length, dtag) #TODO
+        print (session_id)
         session = self.session_manager.find_session(session_id)
 
         if session is not None:
@@ -357,8 +359,10 @@ class SCHCProtocol:
                 context, frag_rule, session_id)
             print("New reassembly session created", session.__class__.__name__)
 
-        dprint("devid ??:", device_id)
-        return session.receive_frag(packet_bbuf, dtag, position=self.position, protocol=self, devid=device_id)
+        dprint("device_id, core_id:", device_id, core_id)
+        dprint("device or core?", self.role) 
+
+        return session.receive_frag(packet_bbuf, dtag, position=self.position, protocol=self, core_id=core_id, device_id=device_id)
 
     def decompress_only (self, packet_bbuf, rule, device_id=None): # called after reassembly      
 
