@@ -229,7 +229,12 @@ class FragmentNoAck(FragmentBase):
 
 
         # send a SCHC fragment
-        args = (schc_frag.packet.get_content(), self._session_id[0], None)
+        if self.protocol.position == T_POSITION_DEVICE:
+            dest = self._session_id[0] # core address
+        else:
+            dest = self._session_id[1] # device address
+
+        args = (schc_frag.packet.get_content(), dest, None)
         dprint ("dbug: frag_send.py: Fragment args", args)
         dprint("frag sent:", schc_frag.__dict__)
         if self.rule[T_FRAG][T_FRAG_PROF][T_FRAG_DTAG] == 0:
@@ -258,8 +263,8 @@ class FragmentNoAck(FragmentBase):
             w_fcn
             ))
         dtrace ("|----{:3}------------->".format(len(schc_frag.packet._content)))
-        print("frag_send.py, args: ", args)
-        print("frag_send.py, _session_id: ", self._session_id[0])
+        print("frag_send.py, NoAck, args: ", args)
+        print("frag_send.py, _session_id: ", self._session_id)
         print("FCN size=", fcn)
         print ('dtag', frag_msg.get_max_dtag(self.rule))
         print ('dtag', frag_msg.get_max_fcn(self.rule))
@@ -536,7 +541,12 @@ class FragmentAckOnError(FragmentBase):
             dprint("*******event id {}".format(self.event_id_ack_wait_timer))
 
         # send a SCHC fragment
-        args = (schc_frag.packet.get_content(), self._session_id[0], self.event_sent_frag)
+        if self.protocol.position == T_POSITION_DEVICE:
+            dest = self._session_id[0] # core address
+        else:
+            dest = self._session_id[1] # device address
+
+        args = (schc_frag.packet.get_content(), dest, self.event_sent_frag)
         dprint ("dbug: frag_send.py: Sending Fragment, args: ", args)
         dprint("frag sent:", schc_frag.__dict__)
         self.protocol.scheduler.add_event(0, self.protocol.layer2.send_packet, args)
@@ -612,7 +622,8 @@ class FragmentAckOnError(FragmentBase):
         dprint("EVENT SEND FRAG")
         self.send_frag()
 
-    def receive_frag(self, bbuf, dtag):
+    def receive_frag(self, bbuf, dtag, protocol, core_id=None, device_id=None):
+        #receive_frag(self, bbuf, dtag):
         # the ack timer can be cancelled here, because it's been done whether
         # both rule_id and dtag in the fragment are matched to this session
         # at process_received_packet().
