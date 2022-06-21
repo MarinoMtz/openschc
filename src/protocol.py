@@ -276,7 +276,6 @@ class SCHCProtocol:
         TODO: If only compress retun True
         If Compres and Frag, return context
         """
-<<<<<<< HEAD
 
         self._log("schc_send {} {}".format(core_id, device_id))
 	#, raw_packet))
@@ -284,35 +283,28 @@ class SCHCProtocol:
         #To perform fragmentation, we get the device_id from the rule:
         #Ex: "DeviceID" : "udp:54.37.158.10:8888",
 
-<<<<<<< HEAD
-<<<<<<< HEAD
         packet_bbuf, device_id = self._apply_compression(device_id, raw_packet)
 
         print("protocol.py, schc_send, core_id: ", core_id, "device_id: ", device_id)
-=======
         self._log("recv-from-l3 {} {} {}".format(dst_l2_address, dst_l3_address, raw_packet))
 
         # Perform compression
         packet_bbuf, device_id = self._apply_compression(dst_l3_address, raw_packet)
->>>>>>> 1cfb60e... deleting comments
+
 
         if packet_bbuf == None: # No compression rule found
             return 
 
-<<<<<<< HEAD
+
         # Start a fragmentation session from rule database
-=======
->>>>>>> 4b89856... Adding Sender Abort Send - frag_context
-=======
+
         #Add sender delay if specified by upper layer
 
         self.sender_delay = sender_delay
 
->>>>>>> 1320af1... Adding Sender-Abort Send
         if self.position == T_POSITION_DEVICE:
             direction = T_DIR_UP
             destination = core_id
-=======
         # Check if fragmentation is needed.
         if packet_bbuf.count_added_bits() < self.connectivity_manager.get_mtu(device_id):
             self._log("fragmentation not needed size={}".format(
@@ -325,7 +317,6 @@ class SCHCProtocol:
         # Start a fragmentation session from rule database
         if self.position == T_POSITION_DEVICE:
             direction = T_DIR_UP
->>>>>>> 1cfb60e... deleting comments
         else:
             direction = T_DIR_DW
             destination = device_id
@@ -337,12 +328,8 @@ class SCHCProtocol:
             return 
 
         # Start a fragmentation session from rule database
-<<<<<<< HEAD
         print ("protocol.py", self.position, direction, destination, sender_delay)
 
-<<<<<<< HEAD
-=======
->>>>>>> cf643dd... Adding Sender-Abort Send
         # Check if fragmentation is needed.
         if packet_bbuf.count_added_bits() < self.connectivity_manager.get_mtu(device_id):
             self._log("fragmentation not needed size={}".format(
@@ -354,9 +341,6 @@ class SCHCProtocol:
             return 
 
         frag_session = self._make_frag_session(core_id=core_id, device_id=device_id, direction=direction)
-=======
-        frag_session = self._make_frag_session(device_id, direction)
->>>>>>> 1cfb60e... deleting comments
         if frag_session is not None:
             frag_session.set_packet(packet_bbuf)
             frag_session.start_sending() 
@@ -420,7 +404,6 @@ class SCHCProtocol:
                 context, frag_rule, session_id)
             print("New reassembly session created", session.__class__.__name__)
 
-<<<<<<< HEAD
         dprint("core_id, device_id:", core_id , device_id)
         dprint("device or core?", self.role) 
 
@@ -432,15 +415,12 @@ class SCHCProtocol:
         if rule == None:
             print ("No rule found")
             return None
-=======
         return session.receive_frag(packet_bbuf, dtag, position=self.position, protocol=self, devid=dst_l2_addr)
->>>>>>> 1cfb60e... deleting comments
 
     def decompress_only (self, packet_bbuf, device_id=None, direction=None): # called after reassembly      
         rule = self.rule_manager.FindRuleFromSCHCpacket(packet_bbuf, device=device_id)
         
         if T_COMP in rule:
-<<<<<<< HEAD
             if self.position == T_POSITION_DEVICE:
                 direction = T_DIR_DW
                 dprint("direction: ", direction)
@@ -452,11 +432,9 @@ class SCHCProtocol:
             unparser = Unparser()
             header_d = decomp.decompress(schc=packet_bbuf, rule=rule, direction=direction)
             dprint("header_d:", header_d)
-=======
             decomp = Decompressor()
             unparser = Unparser()
             header_d = decomp.decompress(schc=packet_bbuf, rule=rule, direction=direction)
->>>>>>> 1cfb60e... deleting comments
             pkt_data = bytearray()
             while (packet_bbuf._wpos - packet_bbuf._rpos) >= 8:
                 octet = packet_bbuf.get_bits(nb_bits=8)
