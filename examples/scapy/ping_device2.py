@@ -85,11 +85,7 @@ def processPkt(pkt):
             elif ip_proto==41:
                 schc_machine.schc_send(bytes(pkt)[34:], device_id=device_id)
                 pkt.show2()
-                        else: 
-                        r = schc_machine.schc_recv(device_id=device_id, schc_packet=schc_pkt)
-                        print (r)
-            elif ip_proto==41:
-                schc_machine.schc_send(bytes(pkt)[34:])
+
 
 # Start SCHC Machine
 POSITION = T_POSITION_DEVICE

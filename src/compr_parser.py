@@ -303,7 +303,7 @@ class Unparser:
             dst    = IPv6Dst.compressed
         ) 
 
-        full_header = IPv6Header/ICMPv6Header
+            full_header = IPv6Header/ICMPv6Header
 
         elif header_d[(T_IPV6_NXT, 1)][0] == 17: # IPv6 / UDP
             UDPHeader = UDP (
