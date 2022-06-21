@@ -21,13 +21,9 @@ rm = RM.RuleManager()
 rm.Add(file="icmp2.json")
 rm.Print()
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-#Unparser
 unparser = Unparser()
 
 =======
->>>>>>> 5bdfb0b... managing (core_id, dev_id) with NoAck
 # Create a ICMPv6 Echo Reply from Echo Request
 def create_echoreply(pkt, addr):
     dprint("packet decompresed: ", pkt)
@@ -55,8 +51,6 @@ def create_echoreply(pkt, addr):
 
     return Echoreply, core_id
 
-=======
->>>>>>> 1cfb60e... deleting comments
 def processPkt(pkt):
     """ called when scapy receives a packet, since this function takes only one argument,
     schc_machine and scheduler must be specified as a global variable.
@@ -79,7 +73,6 @@ def processPkt(pkt):
                     if rule[T_RULEID] == 6 and rule[T_RULEIDLENGTH]== 3:
                         print ("ping")
                         tunnel.sendto(schc_pkt, addr)
-<<<<<<< HEAD
                     else:
                         # None when the reassambly + decompressing process is not finished and [device_id, decompressed packet in bytes] when All-1
                         print("core address", addr)
@@ -94,13 +87,11 @@ def processPkt(pkt):
             elif ip_proto==41:
                 schc_machine.schc_send(bytes(pkt)[34:], device_id=device_id)
                 pkt.show2()
-=======
                     else: 
                         r = schc_machine.schc_recv(device_id=device_id, schc_packet=schc_pkt)
                         print (r)
             elif ip_proto==41:
                 schc_machine.schc_send(bytes(pkt)[34:])
->>>>>>> 1cfb60e... deleting comments
 
 # Start SCHC Machine
 POSITION = T_POSITION_DEVICE
