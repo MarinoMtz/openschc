@@ -28,7 +28,11 @@
 		"RuleID" : 12,
 		"RuleIDLength" : 11,
 		"Fragmentation" : {
+<<<<<<< HEAD
 			"FRMode": "AckOnError",
+=======
+			"FRMode": "ackOnError",
+>>>>>>> c04c04a... adding noack rule.json
 			"FRDirection": "DW",
             "FRModeProfile": {
                 "dtagSize": 2,
@@ -46,7 +50,11 @@
 		"RuleID" : 13,
 		"RuleIDLength" : 11,
 		"Fragmentation" : {
+<<<<<<< HEAD
 		"FRMode": "AckOnError",
+=======
+		"FRMode": "NoAck",
+>>>>>>> c04c04a... adding noack rule.json
 		"FRDirection": "UP",
         "FRModeProfile": {
             "dtagSize": 2,
