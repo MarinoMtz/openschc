@@ -292,21 +292,8 @@ class FragmentNoAck(FragmentBase):
             w_fcn
             ))
         dtrace ("|----{:3}------------->".format(len(schc_frag.packet._content)))
-<<<<<<< HEAD
-        print("frag_send.py, NoAck, args: ", args)
-        print("frag_send.py, _session_id: ", self._session_id)
-        print("FCN size=", fcn)
-<<<<<<< HEAD
-        print ('dtag', frag_msg.get_max_dtag(self.rule))
-        print ('dtag', frag_msg.get_max_fcn(self.rule))
-=======
         dprint("frag_send.py, args: ", args)
         dprint("frag_send.py, _session_id: ", self._session_id[0])
->>>>>>> 1cfb60e... deleting comments
-=======
-        print('dtag', frag_msg.get_max_dtag(self.rule))
-        print('dtag', frag_msg.get_max_fcn(self.rule))
->>>>>>> 4975ade... Adding Sender Abort Send
         self.protocol.scheduler.add_event(0, self.protocol.layer2.send_packet,
                                           args, session_id = self._session_id) # Add session_id
 
@@ -394,18 +381,9 @@ class FragmentAckOnError(FragmentBase):
         #     return
 
         # get contiguous tiles as many as possible fit in MTU.
-<<<<<<< HEAD
-        # mtu_size = self.protocol.layer2.get_mtu_size()
-        mtu_size = self.protocol.connectivity_manager.get_mtu("toto")
-<<<<<<< HEAD
         print ("MTU = ", mtu_size) 
-=======
         mtu_size = self.protocol.layer2.get_mtu_size()
         dprint ("MTU"*5, mtu_size) 
->>>>>>> 1cfb60e... deleting comments
-=======
-        print ("MTU at frag_send.py = ", mtu_size) 
->>>>>>> e430932... Adding Sender Abort Send - frag_context
         window_tiles, nb_remaining_tiles, remaining_size = self.all_tiles.get_tiles(mtu_size)
         #dprint("----window tiles to send: {}, nb_remaining_tiles: {}, remaining_size: {}".format(window_tiles, nb_remaining_tiles, remaining_size))
 
