@@ -233,20 +233,10 @@ class ReassemblerNoAck(ReassembleBase):
                     # XXX need to merge them into one.  Then, here searching database will
                     # XXX be moved into somewhere.
                     # XXX
-<<<<<<< HEAD
                     rule = self.protocol.rule_manager.FindRuleFromSCHCpacket(schc=schc_packet, device=device_id)
                     dprint("debug: No-ack FindRuleFromSCHCpacket", rule, device_id)
                     args = self.protocol.decompress_only(schc_packet, rule, device_id)
                 print("Packet decompressed at receive_frag: ", args)
-=======
-                    rule = self.protocol.rule_manager.FindRuleFromSCHCpacprint(self,schc=schc_packet, device=devid)
-                    dprint("debug: no-ack FindRuleFromSCHCpacket", rule)
-                    if (position == T_POSITION_CORE and self.rule[T_FRAG][T_FRAG_DIRECTION]):
-                        args = self.protocol.decompress_only(schc_packet, devid, "UP") 
-                    else:
-                        args = self.protocol.decompress_only(schc_packet, devid, "DW") 
-
->>>>>>> 1cfb60e... deleting comments
                 self.state = 'DONE_NO_ACK'
                 self.protocol.session_manager.delete_session(self._session_id)
                 dprint(self.state)
