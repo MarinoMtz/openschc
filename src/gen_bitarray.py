@@ -225,16 +225,20 @@ class BitBuffer:
 
             return value
 
-#to be optimized
-    def get_bits_as_buffer(self, nb_bits=None):
-        """ _rpos does change.
-        If nb_bits is None, return all remaining bits.
-        """
+    def get_bits_as_buffer(self, nb_bits=8, position=0):
         result = BitBuffer()
-        if nb_bits is None:
-            nb_bits = self.count_remaining_bits()
-        result.add_bits(self.get_bits(nb_bits), nb_bits)
+
+        for pos in range(position, position + nb_bits):
+            byte_index = pos >> 3
+            offset = 7 - (pos & 7)
+            bit = self._content[byte_index] & (0x01 << offset)  
+            if bit == 0:
+                result.set_bit(0)
+            else:
+                result.set_bit(1)     
         return result
+
+#To be optimized
 
     def ensure_padding(self):
         count = self.count_padding_bits()
