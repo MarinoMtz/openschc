@@ -291,9 +291,9 @@ class Unparser:
                         seq =  header_d[(T_ICMPV6_SEQNO, 1)][0],
                         data = data)
 
-            # Put Dev and App accordingly
+        # Put Dev and App accordingly
 
-            IPv6Header = IPv6 (
+        IPv6Header = IPv6 (
             version= header_d[(T_IPV6_VER, 1)][0],
             tc     = header_d[(T_IPV6_TC, 1)][0],
             fl     = header_d[(T_IPV6_FL, 1)][0],
@@ -301,9 +301,9 @@ class Unparser:
             hlim   = header_d[(T_IPV6_HOP_LMT, 1)][0],
             src    = IPv6Src.compressed, 
             dst    = IPv6Dst.compressed
-            ) 
+        ) 
 
-            full_header = IPv6Header/ICMPv6Header
+        full_header = IPv6Header/ICMPv6Header
 
         elif header_d[(T_IPV6_NXT, 1)][0] == 17: # IPv6 / UDP
             UDPHeader = UDP (
@@ -384,5 +384,5 @@ class Unparser:
             full_header= IPv6Header / Raw(load=data)
 
         return full_header
-
+        
 

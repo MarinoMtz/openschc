@@ -198,7 +198,7 @@ class SCHCProtocol:
         return self.system
 
     #CLEANUP remove dst_l3_address
-    def _apply_compression(self, device_id, raw_packet):
+    def _apply_compression(self, dst_l3_address, raw_packet):
         """Apply matching compression rule if one exists.
         
         In any case return a SCHC packet (compressed or not) as a BitBuffer
@@ -224,7 +224,7 @@ class SCHCProtocol:
         rule, device_id = self.rule_manager.FindRuleFromPacket(parsed_packet, direction=t_dir)
         self._log("compression rule {}".format(rule))
         if rule is None:
-            rule = self.rule_manager.FindNoCompressionRule(device_id)
+            rule = self.rule_manager.FindNoCompressionRule(dst_l3_address)
             self._log("no-compression rule {}".format(rule))
 
             if rule is None:
@@ -243,12 +243,10 @@ class SCHCProtocol:
 
 
     def _make_frag_session(self, core_id, device_id, direction):
-        print("make_frag_session, devid: ", device_id, "direction", direction)
+        print("make_frag_session, devid: ", device_id)
         """Search a fragmentation rule, create a session for it, return None if not found"""
         frag_rule = self.rule_manager.FindFragmentationRule(
                 deviceID=device_id, direction=direction)
-        print("rule_id found :", frag_rule[T_RULEID])
-
         if frag_rule is None:
             self._log("fragmentation rule not found")
             return None
@@ -267,14 +265,11 @@ class SCHCProtocol:
         return session
 
     # CLEANUP: dst_l2 and l3 should be removed
-    def schc_send(self, raw_packet, core_id=None, device_id=None, sender_delay=0):
+    def schc_send(self, raw_packet, core_id=None, device_id=None,):
         """Starting to send SCHC packet after called by Application.
         
-        If self.position is T_POSITION_DEVICE and 
+        If self.position is T_POSITION_DEVICE and device_id = None, 
         this function is for sending from device to core.
-
-        TODO: If only compress retun True
-        If Compres and Frag, return context
         """
 
         self._log("schc_send {} {}".format(core_id, device_id))
@@ -286,68 +281,33 @@ class SCHCProtocol:
         packet_bbuf, device_id = self._apply_compression(device_id, raw_packet)
 
         print("protocol.py, schc_send, core_id: ", core_id, "device_id: ", device_id)
-        self._log("recv-from-l3 {} {} {}".format(dst_l2_address, dst_l3_address, raw_packet))
-
-        # Perform compression
-        packet_bbuf, device_id = self._apply_compression(dst_l3_address, raw_packet)
-
 
         if packet_bbuf == None: # No compression rule found
             return 
 
-
         # Start a fragmentation session from rule database
-
-        #Add sender delay if specified by upper layer
-
-        self.sender_delay = sender_delay
-
         if self.position == T_POSITION_DEVICE:
             direction = T_DIR_UP
             destination = core_id
-        # Check if fragmentation is needed.
-        if packet_bbuf.count_added_bits() < self.connectivity_manager.get_mtu(device_id):
-            self._log("fragmentation not needed size={}".format(
-                packet_bbuf.count_added_bits()))
-            args = (packet_bbuf.get_content(), device_id)
-            self.scheduler.add_event(0, self.layer2.send_packet, args) # XXX: what about directly send?
-            return
-
-        return 
-        # Start a fragmentation session from rule database
-        if self.position == T_POSITION_DEVICE:
-            direction = T_DIR_UP
         else:
             direction = T_DIR_DW
             destination = device_id
-        
-        packet_bbuf, device_id = self._apply_compression(device_id, raw_packet)
-
-        print("protocol.py, schc_send, core_id: ", core_id, "device_id: ", device_id, "sender_delay", sender_delay, "destination", destination, "position", self.position)
-        if packet_bbuf == None: # No compression rule found
-            return 
-
-        # Start a fragmentation session from rule database
-        print ("protocol.py", self.position, direction, destination, sender_delay)
 
         # Check if fragmentation is needed.
         if packet_bbuf.count_added_bits() < self.connectivity_manager.get_mtu(device_id):
             self._log("fragmentation not needed size={}".format(
             packet_bbuf.count_added_bits()))
             args = (packet_bbuf.get_content(), destination)
-            print("protocol.py", destination)
             self.scheduler.add_event(0, self.layer2.send_packet, args) # XXX: what about directly send?            
-            print("protocol.py", args)
-            return 
+            return
 
         frag_session = self._make_frag_session(core_id=core_id, device_id=device_id, direction=direction)
         if frag_session is not None:
             frag_session.set_packet(packet_bbuf)
-            frag_session.start_sending() 
-        
-        return frag_session
+            frag_session.start_sending()
 
     def schc_recv(self, schc_packet, core_id=None,  device_id=None):
+        # if device_id == None:
         dprint ("schc_recv, core_id: " , core_id, "device_id: " , device_id)
         """Receiving a SCHC packet from a lower layer."""
         packet_bbuf = BitBuffer(schc_packet)
@@ -374,7 +334,7 @@ class SCHCProtocol:
                 pkt_data.append(octet)
 
             pkt = unparser.unparse(header_d, pkt_data,  direction, rule,)
-            return device_id, pkt
+            return pkt
     
         # fragmentation rule
 
@@ -415,7 +375,6 @@ class SCHCProtocol:
         if rule == None:
             print ("No rule found")
             return None
-        return session.receive_frag(packet_bbuf, dtag, position=self.position, protocol=self, devid=dst_l2_addr)
 
     def decompress_only (self, packet_bbuf, device_id=None, direction=None): # called after reassembly      
         rule = self.rule_manager.FindRuleFromSCHCpacket(packet_bbuf, device=device_id)
@@ -432,9 +391,6 @@ class SCHCProtocol:
             unparser = Unparser()
             header_d = decomp.decompress(schc=packet_bbuf, rule=rule, direction=direction)
             dprint("header_d:", header_d)
-            decomp = Decompressor()
-            unparser = Unparser()
-            header_d = decomp.decompress(schc=packet_bbuf, rule=rule, direction=direction)
             pkt_data = bytearray()
             while (packet_bbuf._wpos - packet_bbuf._rpos) >= 8:
                 octet = packet_bbuf.get_bits(nb_bits=8)

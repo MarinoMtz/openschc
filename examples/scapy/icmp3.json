@@ -29,8 +29,6 @@
 		"RuleIDLength" : 11,
 		"Fragmentation" : {
 			"FRMode": "AckOnError",
-			"FRMode": "ackOnError",
-			"FRMode": "AckOnError",
 			"FRDirection": "DW",
             "FRModeProfile": {
                 "dtagSize": 2,
