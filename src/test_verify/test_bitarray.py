@@ -31,7 +31,6 @@ def make_bits_list():
 
 def test_bitbuffer_consistency():
     bits_list = make_bits_list()
-    #bitbuffer = BitBuffer(should_record_add=True)
     bitbuffer = BitBuffer()
     for bits, nb_bits in bits_list:
         bitbuffer.add_bits(bits, nb_bits)
@@ -58,8 +57,6 @@ def test_bitbuffer_consistency():
 
 def test_check_newbitbuffer_consistency():
     bits_list = make_bits_list()
-    print (bits_list)
-
     bitbuffer = BitBuffer()
     for bits, nb_bits in bits_list:
         bitbuffer.add_bits(bits, nb_bits)
