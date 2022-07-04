@@ -46,7 +46,9 @@ class SimulLayer2:
         self.receive_function = receive_function
 
     def send_packet(self, packet, dest, transmit_callback=None):
+        # Note: transmit_callback should wait for one argument, indicating if the transmission was ok
         print ("net_sim_layer2.py: send_packet, dest ", dest, "packet", packet, "transmitting ?", self.is_transmitting)
+        # here, we could limit queue size, and drop packet if queue full, with proper call to transmit_callback(False) :
         self.packet_queue.append((packet, None, dest, transmit_callback))
         if not self.is_transmitting:
             self._send_packet_from_queue()
@@ -72,7 +74,7 @@ class SimulLayer2:
         if len(self.packet_queue) > 0:
             self._send_packet_from_queue()
         if transmit_callback != None:
-            transmit_callback()
+            transmit_callback(True) # transmission was ok
 
     def event_receive_packet(self, other_mac_id, packet):
         dprint("+++++ ---- event_receive_packet device_id", self.device_id)

@@ -251,6 +251,8 @@ def test_frag_no_ack_no_loss(rule_no_ack):
     #assert "SUCCESS: MIC matched" in stdout
 
 test_frag_no_ack_no_loss(rule_no_ack())
+#test_frag_ack_on_error_loss(rule_ack_on_error())
+
 
 #def test_frag_no_ack_loss(rule_no_ack):
     # packet loss in NoAck obviously will make an error.
