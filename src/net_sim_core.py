@@ -295,7 +295,7 @@ class Simul:
 
     def _filter_event(self, event):
         import inspect
-        (abs_time, event_id, callback, args) = event
+        (abs_time, event_id, callback, args, xxx_extra) = event # XXX: another argument was added?
         result = {"clock":abs_time, "event-id": event_id}
         result["callback"] = self._filter_value(callback)
         result["args"] = tuple(self._filter_value(x) for x in args)

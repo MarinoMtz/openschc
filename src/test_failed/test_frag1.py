@@ -94,7 +94,15 @@ def frag_generic(rules_filename, packet_loss):
 
     simul_config = {
         "log": True,
+
+        "enable-print": True,
+        "enable-trace": True,
+
+        "record.enable": True,
+        "record.directory": "recorded-frag1",
+        "record.format": "pprint"  # "pprint" or "json"
     }
+
 
     # ---------------------------------------------------------------------------
     # Configuration packets loss
