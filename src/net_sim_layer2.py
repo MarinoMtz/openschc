@@ -6,6 +6,7 @@
 #from stats.statsct import Statsct
 
 from gen_utils import dprint
+import warnings
 
 class SimulLayer2:
     """
@@ -54,20 +55,24 @@ class SimulLayer2:
         assert not self.is_transmitting
         assert len(self.packet_queue) > 0
 
+        self.sim._log(f"(XXX dbg-sched) _send_packet_from_queue {len(self.packet_queue)}")
         self.is_transmitting = True
         (packet, src_dev_id, dst_dev_id, transmit_callback) = self.packet_queue.pop(0)
 
         dprint("++++++++++++ src, dst -- ", src_dev_id, dst_dev_id)
         dprint("send packet from queue -> {}, {}, {}, {}".format(packet, src_dev_id, dst_dev_id, transmit_callback is None))
         print("src_dev_id, dst_dev_id", src_dev_id, src_dev_id, self.is_transmitting)
-        self.sim.send_packet(packet, src_dev_id, dst_dev_id, self._event_sent_callback, (transmit_callback,)) # Calls send_packet in net_sim_core.py
+        self.sim.send_packet(packet, src_dev_id, dst_dev_id, self._event_sent_callback, transmit_callback) # Calls send_packet in net_sim_core.py
 
     def _event_sent_callback(self, transmit_callback):
         print("HERE - event_sent ? ")
-        #assert self.is_transmitting
+        assert self.is_transmitting
+        warnings.warn("transmit_callback() is back")
         self.is_transmitting = False
-        #if transmit_callback != None:
-            #transmit_callback(status)
+        if len(self.packet_queue) > 0:
+            self._send_packet_from_queue()
+        if transmit_callback != None:
+            transmit_callback()
 
     def event_receive_packet(self, other_mac_id, packet):
         dprint("+++++ ---- event_receive_packet device_id", self.device_id)

@@ -11,7 +11,7 @@ from net_sim_loss import PacketLossModel
 import net_sim_record
 from gen_utils import dprint
 import gen_utils
-
+import warnings
 
 try:
     import utime as time
@@ -105,6 +105,7 @@ class Channel:
         self.node_time_table = {}
 
     def transmit_packet(self, src_id, packet, callback, callback_args):
+        self.sim._log(f"(XXX dbg-sched) transmit_packet {src_id} {packet}")
         print("TX ?", src_id)
         clock = self.sim.scheduler.get_clock()
         available_time = self.node_time_table.get(src_id, clock)
@@ -112,7 +113,9 @@ class Channel:
         available_time += 1/PACKET_PER_SECOND
         self.node_time_table[src_id] = available_time
         delivery_rel_time = (available_time + PROPAGATION_DELAY) - clock
-        callback(*callback_args)
+        self.sim._log(f"(XXX dbg-sched) transmit_packet: callback +{delivery_rel_time}")
+        warnings.warn("(XXX dbg-sched) disabled direct call of callback")
+        #callback(*callback_args)
         self.sim.scheduler.add_event(delivery_rel_time, callback, callback_args)
 
 # ---------------------------------------------------------------------------
@@ -187,6 +190,7 @@ class Simul:
     def send_packet(self, packet, src_id, dst_id=None,
                     callback=None, callback_args=tuple()):
         print("src, dst, channel", src_id, dst_id, self.channel)
+        self._log(f"(XXX dbg-sched) send_packet {src_id}->{dst_id} {packet}")
         if self.channel is None:
             return self.deliver_packet(
                 packet, src_id, dst_id, callback, callback_args)
@@ -195,8 +199,8 @@ class Simul:
                 src_id, packet, self.deliver_packet,
                 (packet, src_id, dst_id, callback, callback_args))
 
-
     def deliver_packet(self, packet, src_id, dst_id, callback=None, callback_args=tuple()):
+        self._log(f"(XXX dbg-sched) deliver_packet {src_id}->{dst_id} {packet}")
         self._log("----------------------- SEND PACKET -----------------------")
         print ("deliver packet src, dst", src_id, dst_id)
         lost = self.frame_loss.is_lost(len(packet))
@@ -236,6 +240,7 @@ class Simul:
             # (in general case, some meta_information need to be sent)
 
             args = callback_args
+            self._log(f"(XXX dbg-sched) deliver_packet: callback +NOW")
             callback(args)
         return count
 
