@@ -211,7 +211,11 @@ def frag_generic(rules_filename, packet_loss):
     # ---------------------------------------------------------------------------
     # Simulation
 
-    clock = time.time()
+    warnings.warn("XXX: changed initial clock to deterministic value")
+    # [BEFORE]:
+    # clock = time.time()
+    # [AFTER]:
+    clock = 10
 
     # Core starts to send coap packet
 
