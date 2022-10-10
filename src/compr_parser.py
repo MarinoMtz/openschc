@@ -7,6 +7,7 @@ format is the following:
 since field ID can be repeated, the index is the tuple field ID and position.
 """
 
+# Parser IPv5 / UDP / CoAP
 from gen_base_import import *
 from compr_core import *  # for common variable describing rules (no function called from this module)
 from binascii import hexlify, unhexlify
