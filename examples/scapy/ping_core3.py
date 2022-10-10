@@ -43,6 +43,7 @@ def processPkt(pkt):
                     schc_pkt, addr = tunnel.recvfrom(2000)
                     other_end = "udp:"+addr[0]+":"+str(addr[1])
                     print("other end =", other_end)
+                    print('CORE ID', core_id)
                     uncomp_pkt = schc_machine.schc_recv(core_id=core_id, device_id=other_end, schc_packet=schc_pkt)
                     print("uncomp_pkt", uncomp_pkt, "type", (type(uncomp_pkt)))   
                     if uncomp_pkt != None:
