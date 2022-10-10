@@ -48,7 +48,6 @@ def processPkt(pkt):
             elif ip_proto==41:
                 schc_machine.schc_send(raw_packet=bytes(pkt)[34:], core_id=core_id, device_id = device_id, sender_delay=0)
 
-
 # Start SCHC Machine
 POSITION = T_POSITION_CORE
 
