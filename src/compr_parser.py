@@ -249,6 +249,7 @@ class Unparser:
         L3header = None
         L4header = None
         L7header = None
+        coap_h = None
 
         c = {}
         for k in [T_IPV6_DEV_PREFIX, T_IPV6_DEV_IID, T_IPV6_APP_PREFIX, T_IPV6_APP_IID]:
@@ -280,6 +281,7 @@ class Unparser:
                         seq =  header_d[(T_ICMPV6_SEQNO, 1)][0],
                         data = data)
                 L4header = ICMPv6Header
+        
         elif header_d[(T_IPV6_NXT, 1)][0] == 17: # UDP
             print("KKKK - HERE in UDP section")
             if direction == T_DIR_UP:
@@ -300,7 +302,6 @@ class Unparser:
             else:
                 raise ValueError("TBD")
 
-            coap_h = bytes()
             if (T_COAP_VERSION, 1) in header_d: # IPv6 / UDP / COAP
                 print ("CoAP Inside")
 
@@ -382,7 +383,7 @@ class Unparser:
         
         
 
-        if len(coap_h) != 0:
+        if len(coap_h) != None:
             full_packet = L3header / L4header / Raw(load=coap_h)
         else:
             full_packet = L3header / L4header
