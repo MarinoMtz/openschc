@@ -300,6 +300,7 @@ class Unparser:
             else:
                 raise ValueError("TBD")
 
+            coap_h = bytes()
             if (T_COAP_VERSION, 1) in header_d: # IPv6 / UDP / COAP
                 print ("CoAP Inside")
 
@@ -379,7 +380,13 @@ class Unparser:
 
         L3header = IPv6Header  
         
-        full_packet = L3header / L4header / Raw(load=coap_h)
+        
+
+        if len(coap_h) != 0:
+            full_packet = L3header / L4header / Raw(load=coap_h)
+        else:
+            full_packet = L3header / L4header
+
 
         hexdump(full_packet)
         return full_packet
