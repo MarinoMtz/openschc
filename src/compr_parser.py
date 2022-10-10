@@ -383,7 +383,7 @@ class Unparser:
         
         
 
-        if len(coap_h) != None:
+        if coap_h != None:
             full_packet = L3header / L4header / Raw(load=coap_h)
         else:
             full_packet = L3header / L4header
