@@ -81,7 +81,7 @@ def processPkt(pkt):
                            dprint ("ping_device.py, r =", r)
                            schc_pkt_decompressed = r[1]
                            pkt_reply, core_id = create_echoreply(schc_pkt_decompressed, addr)                     
-                           uncomp_pkt = schc_machine.schc_send(bytes(pkt_reply),dst_l2_address=core_id,)
+                           uncomp_pkt = schc_machine.schc_send(bytes(pkt_reply), core_id=core_id,)
                            dprint(uncomp_pkt)
             elif ip_proto==41:
                 schc_machine.schc_send(bytes(pkt)[34:])
@@ -101,7 +101,6 @@ tunnel.bind(("0.0.0.0", socket_port))
 device_id = 'udp:'+ip+":"+str(socket_port)
 print ("device_id is", device_id)
 
-
 lower_layer = ScapyLowerLayer(position=POSITION, socket=tunnel, other_end=None)
 system = ScapySystem()
 scheduler = system.get_scheduler()
@@ -113,8 +112,3 @@ schc_machine = SCHCProtocol(
 schc_machine.set_rulemanager(rm)
 
 sniff(prn=processPkt, iface="ens3") # scappy cannot read multiple interfaces
-
-
-
-
- 
