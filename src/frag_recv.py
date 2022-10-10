@@ -296,7 +296,8 @@ class ReassemblerAckOnError(ReassembleBase):
                 print('frag_recv.py ACK Received DEVICE')
                 schc_frag = frag_msg.frag_sender_rx(self.rule, bbuf) 
 
-        # Regular Fragment        
+        # Regular Fragment     
+        print('PACKET REC_V', bbuf)   
         schc_frag = frag_msg.frag_receiver_rx(self.rule, bbuf)
         
         print("receiver frag received:", schc_frag.__dict__)
