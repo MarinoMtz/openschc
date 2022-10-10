@@ -70,7 +70,6 @@ def processPkt(pkt):
                     if rule[T_RULEID] == 6 and rule[T_RULEIDLENGTH]== 3:
                         print ("ping")
                         tunnel.sendto(schc_pkt, addr)
-
                     else:
                         # None when the reassambly + decompressing process is not finished and [device_id, decompressed packet in bytes] when All-1
                         print("core address", addr)
